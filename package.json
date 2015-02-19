@@ -28,7 +28,11 @@
     "lib/RPC.js"
   ],
   "dependencies": {
-    "sha1": "^1.1.0"
+    "and": "0.0.0",
+    "npm": "^2.5.1",
+    "peerjs": "^0.3.14",
+    "sha1": "^1.1.0",
+    "test": "^0.6.0"
   },
   "devDependencies": {
     "bailey": "0.0.15",
@@ -40,6 +44,7 @@
     "karma-mocha": "*",
     "karma-phantomjs-launcher": "*",
     "mocha": "*",
-    "mock-require": "^1.0.5"
+    "mock-require": "^1.0.5",
+    "peerjs-mock": "git://github.com/relekang/peerjs-mock"
   }
 }
