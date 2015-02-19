@@ -68,7 +68,7 @@ class RPC
       @_handlers[data.type].bind(@)(connection, data)
 
     else if data.type.match(/return/)
-      @_callbacks[data.signature](data.data)
+      @_callbacks[data.signature](null, data.data)
 
     else if data.type.match(/pong/)
       @_callbacks[data.signature](true)
