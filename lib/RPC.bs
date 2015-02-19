@@ -1,0 +1,117 @@
+import sha1
+import peerjs as Peer
+
+export RPC
+
+
+class RPC
+  _callbacks: {}
+
+  init: (id, scope, peerOptions, peerConfig) ->
+    @peer = new Peer(id, peerOptions, peerConfig)
+    @scope = scope
+    @id = id
+
+    @peer.on('connection', (connection) ->
+      connection.on('data', (data) -> @@@_onData(connection, data))
+    )
+
+  invoke: (id, func, args, callback) ->
+    signature = @_createSignature()
+    @_getConnection(id, (err, connection) ->
+
+      @@_callbacks[signature] = callback
+      connection.send({
+        type: 'rpc-invoke'
+        func: func
+        args: args
+        orig: @@id
+        signature: signature
+      })
+    )
+
+  attr: (id, attr, callback) ->
+    signature = @_createSignature()
+    @_getConnection(id, (err, connection) ->
+
+      @@_callbacks[signature] = callback
+      connection.send({
+        type: 'rpc-attr'
+        attr: attr
+        orig: @@id
+        signature: signature
+      })
+    )
+
+  ping: (id, callback) ->
+    signature = @_createSignature()
+    @_getConnection(id, (err, connection) ->
+      if err
+        return callback and callback(false)
+
+      @@_callbacks[signature] = callback
+      connection.send({
+        type: 'rpc-ping',
+        orig: @@id,
+        signature: signature
+      })
+
+    )
+
+  _createSignature: () -> sha1(Date.now())
+
+  _onData: (connection, data) ->
+    if not 'type' in data
+      return
+
+    if data.type.match(/^rpc-(:?ping|attr|invoke)$/)
+      @_handlers[data.type].bind(@)(connection, data)
+
+    else if data.type.match(/return/)
+      @_callbacks[data.signature](data.data)
+
+    else if data.type.match(/pong/)
+      @_callbacks[data.signature](true)
+
+  _getConnection: (id, callback) ->
+    connection = @peer.connect(id)
+    if connection
+      if connection.open
+        callback and callback(null, connection)
+      else
+        connection.on('open', (conn) -> callback and callback(null, connection))
+
+  _handlers: {
+    'rpc-ping': (connection, data) ->
+      connection.send({
+        type: 'rpc-pong'
+        signature: data.signature
+        orig: @id
+      })
+
+    'rpc-attr': (connection, data) ->
+      connection.send({
+        type: 'rpc-attr-return'
+        data: @scope[data.attr]
+        signature: data.signature
+        orig: @id
+      })
+
+    'rpc-invoke': (connection, data) ->
+      if data.func in @scope
+        @scope[data.func](data.args, (err, result) ->
+          connection.send({
+            type: 'rpc-return'
+            data: result
+            signature: data.signature
+            orig: @id
+          })
+        )
+      else
+        connection.send({
+            type: 'rpc-return'
+            data: new Error('unknown function')
+            signature: data.signature
+            orig: @id
+        })
+    }

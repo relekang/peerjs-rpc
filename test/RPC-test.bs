@@ -1,0 +1,43 @@
+import chai: expect
+import mock-require as mr
+import peerjs-mock as PeerMock
+
+mr('peerjs', PeerMock)
+
+RPC = require('../lib/RPC')
+
+describe('RPC', () ->
+  scope = {
+    ping: (arg, callback) -> callback(null, 'pong: #{arg}')
+    answer: 42
+  }
+
+  n1 = null
+  n2 = null
+
+  beforeEach(() ->
+    n1 = new RPC('n1', scope)
+    n2 = new RPC('n2', scope)
+  )
+
+  it('should ping and receive pong', (done) ->
+    n1.ping('n2', (result) ->
+      expect(result).to.be.truthy
+      done()
+    )
+  )
+
+  it('should invoke and return value', (done) ->
+    n1.invoke('n2', 'ping', '42', (result) ->
+      expect(result).to.equal('pong: 42')
+      done()
+    )
+  )
+
+  it('should return attribute value', (done) ->
+    n1.attr('n2', 'answer', (result) ->
+      expect(result).to.equal(42)
+      done()
+    )
+  )
+)

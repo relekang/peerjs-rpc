@@ -8,6 +8,68 @@ Mock for peerjs
 npm install relekang/peerjs-rpc
 ```
 
+## Usage
+### ping(nodeId, callback)
+Calls callback with either `true` or `false`.
+
+### attr(nodeId, attrName, callback)
+Calls callback with `(err, result)`, where result is the attribute in the given scope on the remote node.
+
+### invoke(nodeId, functionName, arguments, callback)
+Calls callback with `(err, result)`, where result is the the value returned by the callback given to the function in the given scope on the remote node.
+
+### Examples
+#### [Bailey.js](http://haeric.github.io/bailey.js/)
+```coffee
+import peerjs-rpc as RPC
+
+scope = {
+  hi: (name, callback) -> callback("hi there #{name}!")
+  answer: 42
+}
+rpc = new RPC('node-id', scope)
+
+rpc2 = new RPC('another-node', scope) # running on another node
+
+rpc.ping('another-node', (answer) -> console.log(answer))
+# => true
+
+rpc.invoke('another-node', 'hi', 'R2', (answer) -> console.log(answer))
+# => hi there R2!
+
+rpc.attr('another-node', 'answer', (answer) -> console.log(answer))
+# => 42
+```
+
+#### Javascript
+```javascript
+var RPC = require("peerjs-rpc");
+var scope = {
+    'hi': function(name, callback) {
+        return callback("hi there " + name + "!");
+    },
+    'answer': 42
+};
+var rpc = new RPC('node-id', scope);
+
+var rpc2 = new RPC('another-node', scope);
+
+rpc.ping('another-node', function(answer) {
+    return console.log(answer);
+});
+// => true
+
+rpc.invoke('another-node', 'hi', 'R2', function(answer) {
+    return console.log(answer);
+});
+// => hi there R2!
+
+rpc.attr('another-node', 'answer', function(answer) {
+    return console.log(answer);
+});
+// => 42
+```
+
 
 ----------------------
 
