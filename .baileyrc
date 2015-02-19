@@ -1,0 +1,12 @@
+{
+  "lib": {
+    "source": "lib",
+    "target": "lib",
+    "node": true
+  },
+  "test": {
+    "source": "test",
+    "target": "test",
+    "node": true
+  }
+}

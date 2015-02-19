@@ -1,0 +1,45 @@
+{
+  "name": "peerjs-rpc",
+  "version": "0.1.0",
+  "description": "RPC module for peerjs",
+  "main": "lib/RPC.js",
+  "scripts": {
+    "test": "istanbul cover _mocha test/ && istanbul report cobertura"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/relekang/peerjs-rpc.git"
+  },
+  "keywords": [
+    "rpc",
+    "peerjs",
+    "remote-procedure-call"
+  ],
+  "author": "Rolf Erik Lekang <me@rolflekang.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/relekang/peerjs-rpc/issues"
+  },
+  "homepage": "https://github.com/relekang/peerjs-rpc",
+  "files": [
+    "LICENSE",
+    "package.json",
+    "README.md",
+    "lib/RPC.js"
+  ],
+  "dependencies": {
+    "sha1": "^1.1.0"
+  },
+  "devDependencies": {
+    "bailey": "0.0.15",
+    "chai": "*",
+    "istanbul": "*",
+    "karma": "*",
+    "karma-browserify": "*",
+    "karma-cli": "*",
+    "karma-mocha": "*",
+    "karma-phantomjs-launcher": "*",
+    "mocha": "*",
+    "mock-require": "^1.0.5"
+  }
+}
