@@ -28,14 +28,20 @@ describe('RPC', () ->
   )
 
   it('should invoke and return value', (done) ->
-    n1.invoke('n2', 'ping', '42', (result) ->
+    n1.invoke('n2', 'ping', '42', (err, result) ->
+      if err
+        done(err)
+
       expect(result).to.equal('pong: 42')
       done()
     )
   )
 
   it('should return attribute value', (done) ->
-    n1.attr('n2', 'answer', (result) ->
+    n1.attr('n2', 'answer', (err, result) ->
+      if err
+        done(err)
+        
       expect(result).to.equal(42)
       done()
     )

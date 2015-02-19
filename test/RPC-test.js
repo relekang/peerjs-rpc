@@ -31,14 +31,22 @@ describe('RPC', function() {
     });
 
     it('should invoke and return value', function(done) {
-        n1.invoke('n2', 'ping', '42', function(result) {
+        n1.invoke('n2', 'ping', '42', function(err, result) {
+            if (err) {
+                done(err);
+            }
+
             expect(result).to.equal('pong: 42');
             done();
         });
     });
 
     it('should return attribute value', function(done) {
-        n1.attr('n2', 'answer', function(result) {
+        n1.attr('n2', 'answer', function(err, result) {
+            if (err) {
+                done(err);
+            }
+
             expect(result).to.equal(42);
             done();
         });
