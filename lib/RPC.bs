@@ -76,6 +76,7 @@ class RPC
   _getConnection: (id, callback) ->
     connection = @peer.connect(id)
     if connection
+      connection.on('data', (data) -> @@_onData(connection, data))
       if connection.open
         callback and callback(null, connection)
       else
