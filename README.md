@@ -5,7 +5,7 @@ RPC module for WebRTC using peerjs.
 ## Installation
 
 ```
-npm install relekang/peerjs-rpc
+npm install peerjs-rpc
 ```
 
 ## Usage
@@ -16,7 +16,7 @@ Calls callback with either `true` or `false`.
 Calls callback with `(err, result)`, where result is the attribute in the given scope on the remote node.
 
 ### invoke(nodeId, functionName, arguments, callback)
-Calls callback with `(err, result)`, where result is the the value returned by the callback given to the function in the given scope on the remote node.
+Calls callback with `(err, result)`, where result is the value returned by the callback given to the function in the given scope on the remote node. `arguments` can be one argument or an array with arguments.
 
 ### Examples
 #### [Bailey.js](http://haeric.github.io/bailey.js/)
