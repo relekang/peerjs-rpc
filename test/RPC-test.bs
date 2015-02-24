@@ -11,6 +11,7 @@ describe('RPC', () ->
     ping: (arg, callback) -> callback(null, 'pong: #{arg}')
     pinger: (callback) -> callback(null, 'pong')
     add: (arg1, arg2, callback) -> callback(null, arg1 + arg2)
+    getAnswer: (callback) -> callback(null, @answer)
     answer: 42
   }
 
@@ -55,6 +56,16 @@ describe('RPC', () ->
       done()
     )
   )
+
+  it('should be able to reference scope in invoked functions', (done) ->
+    n1.invoke('n2', 'getAnswer', undefined, (err, result) ->
+      if err then return done(err)
+
+      expect(result).to.equal(42)
+      done()
+    )
+  )
+
 
   it('should return attribute value', (done) ->
     n1.attr('n2', 'answer', (err, result) ->

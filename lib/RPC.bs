@@ -110,7 +110,7 @@ class RPC
             orig: @id
           })
         )
-        @scope[data.func].apply(@, data.args)
+        @scope[data.func].apply(@scope, data.args)
       else
         connection.send({
             type: 'rpc-return'

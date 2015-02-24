@@ -18,6 +18,9 @@ describe('RPC', function() {
         'add': function(arg1, arg2, callback) {
             return callback(null, arg1 + arg2);
         },
+        'getAnswer': function(callback) {
+            return callback(null, this.answer);
+        },
         'answer': 42
     };
 
@@ -68,6 +71,18 @@ describe('RPC', function() {
             done();
         });
     });
+
+    it('should be able to reference scope in invoked functions', function(done) {
+        n1.invoke('n2', 'getAnswer', undefined, function(err, result) {
+            if (err) {
+                return done(err)
+            }
+
+            expect(result).to.equal(42);
+            done();
+        });
+    });
+
 
     it('should return attribute value', function(done) {
         n1.attr('n2', 'answer', function(err, result) {
