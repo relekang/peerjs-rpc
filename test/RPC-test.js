@@ -12,6 +12,12 @@ describe('RPC', function() {
         'ping': function(arg, callback) {
             return callback(null, 'pong: ' + arg + '');
         },
+        'pinger': function(callback) {
+            return callback(null, 'pong');
+        },
+        'add': function(arg1, arg2, callback) {
+            return callback(null, arg1 + arg2);
+        },
         'answer': 42
     };
 
@@ -30,10 +36,21 @@ describe('RPC', function() {
         });
     });
 
-    it('should invoke and return value', function(done) {
+    it('should invoke with no arguments and return value', function(done) {
+        n1.invoke('n2', 'pinger', undefined, function(err, result) {
+            if (err) {
+                return done(err)
+            }
+
+            expect(result).to.equal('pong');
+            done();
+        });
+    });
+
+    it('should invoke with one argument and return value', function(done) {
         n1.invoke('n2', 'ping', '42', function(err, result) {
             if (err) {
-                done(err);
+                return done(err)
             }
 
             expect(result).to.equal('pong: 42');
@@ -41,10 +58,21 @@ describe('RPC', function() {
         });
     });
 
+    it('should invoke with multiple arguments and return value', function(done) {
+        n1.invoke('n2', 'add', [40, 2], function(err, result) {
+            if (err) {
+                return done(err)
+            }
+
+            expect(result).to.equal(42);
+            done();
+        });
+    });
+
     it('should return attribute value', function(done) {
         n1.attr('n2', 'answer', function(err, result) {
             if (err) {
-                done(err);
+                return done(err)
             }
 
             expect(result).to.equal(42);

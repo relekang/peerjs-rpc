@@ -9,6 +9,8 @@ RPC = require('../lib/RPC')
 describe('RPC', () ->
   scope = {
     ping: (arg, callback) -> callback(null, 'pong: #{arg}')
+    pinger: (callback) -> callback(null, 'pong')
+    add: (arg1, arg2, callback) -> callback(null, arg1 + arg2)
     answer: 42
   }
 
@@ -27,21 +29,37 @@ describe('RPC', () ->
     )
   )
 
-  it('should invoke and return value', (done) ->
+  it('should invoke with no arguments and return value', (done) ->
+    n1.invoke('n2', 'pinger', undefined, (err, result) ->
+      if err then return done(err)
+
+      expect(result).to.equal('pong')
+      done()
+    )
+  )
+
+  it('should invoke with one argument and return value', (done) ->
     n1.invoke('n2', 'ping', '42', (err, result) ->
-      if err
-        done(err)
+      if err then return done(err)
 
       expect(result).to.equal('pong: 42')
       done()
     )
   )
 
+  it('should invoke with multiple arguments and return value', (done) ->
+    n1.invoke('n2', 'add', [40, 2], (err, result) ->
+      if err then return done(err)
+
+      expect(result).to.equal(42)
+      done()
+    )
+  )
+
   it('should return attribute value', (done) ->
     n1.attr('n2', 'answer', (err, result) ->
-      if err
-        done(err)
-        
+      if err then return done(err)
+
       expect(result).to.equal(42)
       done()
     )

@@ -100,7 +100,9 @@ class RPC
 
     'rpc-invoke': (connection, data) ->
       if data.func in @scope
-        @scope[data.func](data.args, (err, result) ->
+        if data.args == undefined then data.args = []
+        if not Array.isArray(data.args) then data.args = [data.args]
+        data.args.push((err, result) ->
           connection.send({
             type: 'rpc-return'
             data: result
@@ -108,6 +110,7 @@ class RPC
             orig: @id
           })
         )
+        @scope[data.func].apply(@, data.args)
       else
         connection.send({
             type: 'rpc-return'
