@@ -23,56 +23,102 @@ describe('RPC', () ->
     n2 = new RPC('n2', scope)
   )
 
-  it('should ping and receive pong', (done) ->
-    n1.ping('n2', (result) ->
-      expect(result).to.be.truthy
-      done()
+  describe('using callbacks', () ->
+    it('should ping and receive pong', (done) ->
+      n1.ping('n2', (result) ->
+        expect(result).to.be.truthy
+        done()
+      )
+    )
+
+    it('should invoke with no arguments and return value', (done) ->
+      n1.invoke('n2', 'pinger', undefined, (err, result) ->
+        if err then return done(err)
+
+        expect(result).to.equal('pong')
+        done()
+      )
+    )
+
+    it('should invoke with one argument and return value', (done) ->
+      n1.invoke('n2', 'ping', '42', (err, result) ->
+        if err then return done(err)
+
+        expect(result).to.equal('pong: 42')
+        done()
+      )
+    )
+
+    it('should invoke with multiple arguments and return value', (done) ->
+      n1.invoke('n2', 'add', [40, 2], (err, result) ->
+        if err then return done(err)
+
+        expect(result).to.equal(42)
+        done()
+      )
+    )
+
+    it('should be able to reference scope in invoked functions', (done) ->
+      n1.invoke('n2', 'getAnswer', undefined, (err, result) ->
+        if err then return done(err)
+
+        expect(result).to.equal(42)
+        done()
+      )
+    )
+
+
+    it('should return attribute value', (done) ->
+      n1.attr('n2', 'answer', (err, result) ->
+        if err then return done(err)
+
+        expect(result).to.equal(42)
+        done()
+      )
     )
   )
 
-  it('should invoke with no arguments and return value', (done) ->
-    n1.invoke('n2', 'pinger', undefined, (err, result) ->
-      if err then return done(err)
-
-      expect(result).to.equal('pong')
-      done()
+  describe('using promises', () ->
+    it('should ping and receive pong', () ->
+      n1.ping('n2')
+        .then((result) ->
+          expect(result).to.be.truthy
+        )
     )
-  )
 
-  it('should invoke with one argument and return value', (done) ->
-    n1.invoke('n2', 'ping', '42', (err, result) ->
-      if err then return done(err)
-
-      expect(result).to.equal('pong: 42')
-      done()
+    it('should invoke with no arguments and return value', () ->
+      n1.invoke('n2', 'pinger', undefined)
+        .then((result) ->
+          expect(result).to.equal('pong')
+        )
     )
-  )
 
-  it('should invoke with multiple arguments and return value', (done) ->
-    n1.invoke('n2', 'add', [40, 2], (err, result) ->
-      if err then return done(err)
-
-      expect(result).to.equal(42)
-      done()
+    it('should invoke with one argument and return value', () ->
+      n1.invoke('n2', 'ping', '42')
+        .then((result) ->
+          expect(result).to.equal('pong: 42')
+        )
     )
-  )
 
-  it('should be able to reference scope in invoked functions', (done) ->
-    n1.invoke('n2', 'getAnswer', undefined, (err, result) ->
-      if err then return done(err)
-
-      expect(result).to.equal(42)
-      done()
+    it('should invoke with multiple arguments and return value', () ->
+      n1.invoke('n2', 'add', [40, 2])
+        .then((result) ->
+          expect(result).to.equal(42)
+        )
     )
-  )
 
+    it('should be able to reference scope in invoked functions', () ->
+      n1.invoke('n2', 'getAnswer', undefined)
+        .then((result) ->
+          expect(result).to.equal(42)
+        )
+    )
 
-  it('should return attribute value', (done) ->
-    n1.attr('n2', 'answer', (err, result) ->
-      if err then return done(err)
-
-      expect(result).to.equal(42)
-      done()
+    it('should return attribute value', () ->
+      n1.attr('n2', 'answer')
+        .then((result) ->
+          expect(result).to.equal(42)
+        )
     )
   )
 )

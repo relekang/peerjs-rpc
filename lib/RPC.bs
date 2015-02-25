@@ -1,4 +1,5 @@
 import sha1
+import bluebird as Promise
 import peerjs as Peer
 
 export RPC
@@ -18,45 +19,49 @@ class RPC
 
   invoke: (id, func, args, callback) ->
     signature = @_createSignature()
-    @_getConnection(id, (err, connection) ->
+    return @_getConnection(id)
+      .then((connection) ->
+        return new Promise((resolve) ->
+          @@@_callbacks[signature] = resolve
 
-      @@_callbacks[signature] = callback
-      connection.send({
-        type: 'rpc-invoke'
-        func: func
-        args: args
-        orig: @@id
-        signature: signature
-      })
-    )
+          connection.send({
+            type: 'rpc-invoke'
+            func: func
+            args: args
+            orig: @@@id
+            signature: signature
+          })
+        )
+      ).nodeify(callback)
 
   attr: (id, attr, callback) ->
     signature = @_createSignature()
-    @_getConnection(id, (err, connection) ->
-
-      @@_callbacks[signature] = callback
-      connection.send({
-        type: 'rpc-attr'
-        attr: attr
-        orig: @@id
-        signature: signature
-      })
-    )
+    return @_getConnection(id)
+      .then((connection) ->
+        return new Promise((resolve) ->
+          @@@_callbacks[signature] = resolve
+          connection.send({
+            type: 'rpc-attr'
+            attr: attr
+            orig: @@id
+            signature: signature
+          })
+        )
+      ).nodeify(callback)
 
   ping: (id, callback) ->
     signature = @_createSignature()
-    @_getConnection(id, (err, connection) ->
-      if err
-        return callback and callback(false)
-
-      @@_callbacks[signature] = callback
-      connection.send({
-        type: 'rpc-ping',
-        orig: @@id,
-        signature: signature
-      })
-
-    )
+    return @_getConnection(id)
+      .then((connection) ->
+        return new Promise((resolve) ->
+          @@@_callbacks[signature] = resolve
+          connection.send({
+            type: 'rpc-ping',
+            orig: @@@id,
+            signature: signature
+          })
+        )
+    ).nodeify(callback)
 
   _createSignature: () -> sha1(Date.now())
 
@@ -68,19 +73,23 @@ class RPC
       @_handlers[data.type].bind(@)(connection, data)
 
     else if data.type.match(/return/)
-      @_callbacks[data.signature](null, data.data)
+      @_callbacks[data.signature](data.data)
 
     else if data.type.match(/pong/)
       @_callbacks[data.signature](true)
 
   _getConnection: (id, callback) ->
-    connection = @peer.connect(id)
-    if connection
-      connection.on('data', (data) -> @@_onData(connection, data))
-      if connection.open
-        callback and callback(null, connection)
-      else
-        connection.on('open', (conn) -> callback and callback(null, connection))
+    return new Promise((resolve) ->
+      connection = @@peer.connect(id)
+      if connection
+        connection.on('data', (data) -> @@@_onData(connection, data))
+        if connection.open
+          resolve(connection)
+        else
+          connection.on('open', (conn) ->
+            resolve(connection)
+          )
+    ).nodeify(callback)
 
   _handlers: {
     'rpc-ping': (connection, data) ->
