@@ -54,7 +54,7 @@ class RPC
     if not 'type' in data
       return
 
-    @_log('Received data: #{JSON.stringify(data)}')
+    @_log('Received data: ', data)
 
     if data.type.match(/^rpc-(:?ping|attr|invoke)$/)
       @_handlers[data.type].bind(@)(connection, data)
@@ -84,13 +84,14 @@ class RPC
         return new Promise((resolve) ->
           @@@_callbacks[payload.signature] = resolve
           connection.send(payload)
-          @@@_log('Sending payload #{JSON.stringify(payload)}')
+          @@@_log('Sending payload: ', payload)
         )
       )
 
-  _log: (message) ->
+  _log: (message, obj) ->
     if not @debug then return
-    console.log('RPC:  #{message}')
+    CircularJSON = require('circular-json')
+    console.log('RPC:  #{message} #{CircularJSON.stringify(obj)}')
 
   _handlers: {
     'rpc-ping': (connection, data) ->
