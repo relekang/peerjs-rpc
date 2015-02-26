@@ -54,6 +54,8 @@ class RPC
     if not 'type' in data
       return
 
+    @_log('Received data: #{JSON.stringify(data)}')
+
     if data.type.match(/^rpc-(:?ping|attr|invoke)$/)
       @_handlers[data.type].bind(@)(connection, data)
 
@@ -82,15 +84,13 @@ class RPC
         return new Promise((resolve) ->
           @@@_callbacks[payload.signature] = resolve
           connection.send(payload)
+          @@@_log('Sending payload #{JSON.stringify(payload)}')
         )
       )
 
   _log: (message) ->
-    if not debug then return
-    try
-      console.log('RPC:  #{JSON.stringify(message)}')
-    catch e
-      console.log('RPC:  #{message}')
+    if not @debug then return
+    console.log('RPC:  #{message}')
 
   _handlers: {
     'rpc-ping': (connection, data) ->
