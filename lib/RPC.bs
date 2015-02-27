@@ -57,7 +57,7 @@ class RPC
     @_log('Received data: ', data)
 
     if data.type.match(/^rpc-(:?ping|attr|invoke)$/)
-      @_handlers[data.type].bind(@)(connection, data)
+      @_handlers()[data.type].bind(@)(connection, data)
 
     else if data.type.match(/return/)
       @_callbacks[data.signature](data.data)
@@ -93,40 +93,49 @@ class RPC
     CircularJSON = require('circular-json')
     console.log('RPC:  #{message} #{CircularJSON.stringify(obj)}')
 
-  _handlers: {
+  _handlers: () ->
+    return {
     'rpc-ping': (connection, data) ->
-      connection.send({
+      payload = {
         type: 'rpc-pong'
         signature: data.signature
-        orig: @id
-      })
+        orig: @@id
+      }
+      @@_log('Sending payload: ', payload)
+      connection.send(payload)
 
     'rpc-attr': (connection, data) ->
-      connection.send({
+      payload = {
         type: 'rpc-attr-return'
-        data: @scope[data.attr]
+        data: @@scope[data.attr]
         signature: data.signature
-        orig: @id
-      })
+        orig: @@id
+      }
+      @@_log('Sending payload: ', payload)
+      connection.send(payload)
 
     'rpc-invoke': (connection, data) ->
-      if data.func in @scope
+      if data.func in @@scope
         if data.args == undefined then data.args = []
         if not Array.isArray(data.args) then data.args = [data.args]
         data.args.push((err, result) ->
-          connection.send({
+          payload = {
             type: 'rpc-return'
             data: result
             signature: data.signature
             orig: @id
-          })
+          }
+          @@_log('Sending payload: ', payload)
+          connection.send(payload)
         )
-        @scope[data.func].apply(@scope, data.args)
+        @@scope[data.func].apply(@@scope, data.args)
       else
-        connection.send({
+        payload = {
             type: 'rpc-return'
             data: new Error('unknown function')
             signature: data.signature
-            orig: @id
-        })
+            orig: @@id
+        }
+        @@_log('Sending payload: ', payload)
+        connection.send(payload)
     }

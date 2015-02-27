@@ -9,6 +9,9 @@ test/RPC-test.js: test/RPC-test.bs
 test: lib/RPC.js test/RPC-test.js
 	npm test
 
+mocha: lib/RPC.js test/RPC-test.js
+	node_modules/.bin/mocha 
+
 html-coverage:
 	istanbul report html && open coverage/index.html
 
