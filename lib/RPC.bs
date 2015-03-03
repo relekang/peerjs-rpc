@@ -27,7 +27,7 @@ class RPC
       func: func
       args: args
       orig: @id
-      signature: @_createSignature()
+      signature: @_createSignature(@id, id, 'invoke')
     }
     return @_send(id, payload).nodeify(callback)
 
@@ -36,7 +36,7 @@ class RPC
       type: 'rpc-attr'
       attr: attr
       orig: @id
-      signature: @_createSignature()
+      signature: @_createSignature(@id, id, 'attr')
     }
     return @_send(id, payload).nodeify(callback)
 
@@ -44,11 +44,11 @@ class RPC
     payload = {
       type: 'rpc-ping',
       orig: @id,
-      signature: @_createSignature()
+      signature: @_createSignature(@id, id, 'ping')
     }
     return @_send(id, payload).nodeify(callback)
 
-  _createSignature: () -> sha1(Date.now())
+  _createSignature: (from, to, func) -> sha1('#{Date.now()}:#{from}:#{to}:#{func}')
 
   _onData: (connection, data) ->
     if not 'type' in data
