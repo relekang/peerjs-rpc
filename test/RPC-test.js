@@ -94,6 +94,12 @@ describe('RPC', function() {
             });
         });
 
+        it('should return error if the function does not exits', function(done) {
+            n1.invoke('n2', 'non-existing-function', undefined, function(err, result) {
+                expect(err.message).to.equal('unknown function');
+                done();
+            });
+        });
 
         it('should return attribute value', function(done) {
             n1.attr('n2', 'answer', function(err, result) {
@@ -109,7 +115,7 @@ describe('RPC', function() {
 
     describe('using promises', function() {
         it('should ping and receive pong', function() {
-            n1.ping('n2').then(function(result) {
+            return n1.ping('n2').then(function(result) {
                 expect(result).to.be.true;
             });
         });
@@ -118,37 +124,47 @@ describe('RPC', function() {
             var n = new RPC('n', scope, {
                 'timeout': 1
             });
-            n.ping('n2').then(function(result) {
+            return n.ping('n2').then(function(result) {
                 expect(result).to.be.false;
             });
         });
 
         it('should invoke with no arguments and return value', function() {
-            n1.invoke('n2', 'pinger', undefined).then(function(result) {
+            return n1.invoke('n2', 'pinger', undefined).then(function(result) {
                 expect(result).to.equal('pong');
             });
         });
 
         it('should invoke with one argument and return value', function() {
-            n1.invoke('n2', 'ping', '42').then(function(result) {
+            return n1.invoke('n2', 'ping', '42').then(function(result) {
                 expect(result).to.equal('pong: 42');
             });
         });
 
         it('should invoke with multiple arguments and return value', function() {
-            n1.invoke('n2', 'add', [40, 2]).then(function(result) {
+            return n1.invoke('n2', 'add', [40, 2]).then(function(result) {
                 expect(result).to.equal(42);
             });
         });
 
         it('should be able to reference scope in invoked functions', function() {
-            n1.invoke('n2', 'getAnswer', undefined).then(function(result) {
+            return n1.invoke('n2', 'getAnswer', undefined).then(function(result) {
                 expect(result).to.equal(42);
             });
         });
 
+        it('should return error if the function does not exits', function() {
+            var catched = false;
+            return n1.invoke('n2', 'non-existing-function').catch(function(err) {
+                expect(err.message).to.equal('unknown function');
+                catched = true;
+            }).then(function() {
+                return expect(catched).to.be.true;
+            });
+        });
+
         it('should return attribute value', function() {
-            n1.attr('n2', 'answer').then(function(result) {
+            return n1.attr('n2', 'answer').then(function(result) {
                 expect(result).to.equal(42);
             });
         });

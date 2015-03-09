@@ -75,6 +75,12 @@ describe('RPC', () ->
       )
     )
 
+    it('should return error if the function does not exits', (done) ->
+      n1.invoke('n2', 'non-existing-function', undefined, (err, result) ->
+        expect(err.message).to.equal('unknown function')
+        done()
+      )
+    )
 
     it('should return attribute value', (done) ->
       n1.attr('n2', 'answer', (err, result) ->
@@ -128,6 +134,16 @@ describe('RPC', () ->
         .then((result) ->
           expect(result).to.equal(42)
         )
+    )
+
+    it('should return error if the function does not exits', () ->
+      catched = false
+      return n1.invoke('n2', 'non-existing-function')
+        .catch((err) ->
+          expect(err.message).to.equal('unknown function')
+          catched = true
+        )
+        .then(() -> expect(catched).to.be.true)
     )
 
     it('should return attribute value', () ->

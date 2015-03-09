@@ -95,7 +95,10 @@ class RPC
           , @@@timeout)
           @@@_callbacks[payload.signature] = (result) ->
             clearTimeout(@@@@_timeouts[payload.signature])
-            resolve(result)
+            if result instanceof Error
+              reject(result)
+            else
+              resolve(result)
           connection.send(payload)
           @@@_log('Sending payload: ', payload)
         )
