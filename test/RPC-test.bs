@@ -88,7 +88,7 @@ describe('RPC', () ->
 
   describe('using promises', () ->
     it('should ping and receive pong', () ->
-      n1.ping('n2')
+      return n1.ping('n2')
         .then((result) ->
           expect(result).to.be.true
         )
@@ -96,42 +96,42 @@ describe('RPC', () ->
 
     it('should return false if ping times out', () ->
       n = new RPC('n', scope, { timeout: 1 })
-      n.ping('n2')
+      return n.ping('n2')
         .then((result) ->
           expect(result).to.be.false
         )
     )
 
     it('should invoke with no arguments and return value', () ->
-      n1.invoke('n2', 'pinger', undefined)
+      return n1.invoke('n2', 'pinger', undefined)
         .then((result) ->
           expect(result).to.equal('pong')
         )
     )
 
     it('should invoke with one argument and return value', () ->
-      n1.invoke('n2', 'ping', '42')
+      return n1.invoke('n2', 'ping', '42')
         .then((result) ->
           expect(result).to.equal('pong: 42')
         )
     )
 
     it('should invoke with multiple arguments and return value', () ->
-      n1.invoke('n2', 'add', [40, 2])
+      return n1.invoke('n2', 'add', [40, 2])
         .then((result) ->
           expect(result).to.equal(42)
         )
     )
 
     it('should be able to reference scope in invoked functions', () ->
-      n1.invoke('n2', 'getAnswer', undefined)
+      return n1.invoke('n2', 'getAnswer', undefined)
         .then((result) ->
           expect(result).to.equal(42)
         )
     )
 
     it('should return attribute value', () ->
-      n1.attr('n2', 'answer')
+      return n1.attr('n2', 'answer')
         .then((result) ->
           expect(result).to.equal(42)
         )
