@@ -34,8 +34,18 @@ describe('RPC', function() {
 
     describe('using callbacks', function() {
         it('should ping and receive pong', function(done) {
-            n1.ping('n2', function(result) {
+            n1.ping('n2', function(err, result) {
                 expect(result).to.be.truthy;
+                done();
+            });
+        });
+
+        it('should return false if ping times out', function(done) {
+            var n = new RPC('n', scope, {
+                'timeout': 1
+            });
+            n.ping('n2', function(err, result) {
+                expect(result).to.be.false;
                 done();
             });
         });
@@ -100,7 +110,16 @@ describe('RPC', function() {
     describe('using promises', function() {
         it('should ping and receive pong', function() {
             n1.ping('n2').then(function(result) {
-                expect(result).to.be.truthy;
+                expect(result).to.be.true;
+            });
+        });
+
+        it('should return false if ping times out', function() {
+            var n = new RPC('n', scope, {
+                'timeout': 1
+            });
+            n.ping('n2').then(function(result) {
+                expect(result).to.be.false;
             });
         });
 

@@ -25,8 +25,16 @@ describe('RPC', () ->
 
   describe('using callbacks', () ->
     it('should ping and receive pong', (done) ->
-      n1.ping('n2', (result) ->
+      n1.ping('n2', (err, result) ->
         expect(result).to.be.truthy
+        done()
+      )
+    )
+
+    it('should return false if ping times out', (done) ->
+      n = new RPC('n', scope, { timeout: 1 })
+      n.ping('n2', (err, result) ->
+        expect(result).to.be.false
         done()
       )
     )
@@ -82,7 +90,15 @@ describe('RPC', () ->
     it('should ping and receive pong', () ->
       n1.ping('n2')
         .then((result) ->
-          expect(result).to.be.truthy
+          expect(result).to.be.true
+        )
+    )
+
+    it('should return false if ping times out', () ->
+      n = new RPC('n', scope, { timeout: 1 })
+      n.ping('n2')
+        .then((result) ->
+          expect(result).to.be.false
         )
     )
 
