@@ -100,7 +100,7 @@ class RPC
             else
               resolve(result)
           connection.send(payload)
-          @@@_log('Sending payload: ', payload)
+          @@@_log('Sending payload to "#{id}": ', payload)
         )
       )
 
