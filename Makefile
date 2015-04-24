@@ -1,9 +1,9 @@
 all: lib/RPC.js test/RPC-test.js
 
-lib/RPC.js: lib/RPC.bs
+lib/RPC.js: lib/RPC.bs lib/RPCMock.bs
 	bailey -c lib
 
-test/RPC-test.js: test/RPC-test.bs
+test/RPC-test.js: test/RPC-test.bs test/RPCMock-test.bs
 	bailey -c test
 
 test: lib/RPC.js test/RPC-test.js

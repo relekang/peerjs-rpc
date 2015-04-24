@@ -11,6 +11,7 @@ class RPC
   timeout: 5000
 
   init: (id, scope, options) ->
+    that = @
     if options
       peerOptions = options.peerOptions or {}
       peerConfig = options.peerConfig or {}
@@ -21,7 +22,7 @@ class RPC
     @id = id
 
     @peer.on('connection', (connection) ->
-      connection.on('data', (data) -> @@@_onData(connection, data))
+      connection.on('data', (data) -> that._onData(connection, data))
     )
 
   invoke: (id, func, args, callback) ->
@@ -32,7 +33,7 @@ class RPC
       orig: @id
       signature: @_createSignature(@id, id, 'invoke')
     }
-    return @_send(id, payload).nodeify(callback)
+    return @_sendInvocation(id, payload).nodeify(callback)
 
   attr: (id, attr, callback) ->
     payload = {
@@ -41,7 +42,7 @@ class RPC
       orig: @id
       signature: @_createSignature(@id, id, 'attr')
     }
-    return @_send(id, payload).nodeify(callback)
+    return @_sendInvocation(id, payload).nodeify(callback)
 
   ping: (id, callback) ->
     payload = {
@@ -49,7 +50,7 @@ class RPC
       orig: @id,
       signature: @_createSignature(@id, id, 'ping')
     }
-    return @_send(id, payload)
+    return @_sendInvocation(id, payload)
       .catch((err) ->
         if err.message.match(/timed out/)
           return false
@@ -59,9 +60,8 @@ class RPC
   _createSignature: (from, to, func) -> sha1('#{Date.now()}:#{from}:#{to}:#{func}')
 
   _onData: (connection, data) ->
-    if not 'type' in data
-      return
-
+    if not 'type' in data then return
+    
     @_log('Received data: ', data)
 
     if data.type.match(/^rpc-(:?ping|attr|invoke)$/)
@@ -74,10 +74,11 @@ class RPC
       @_callbacks[data.signature](true)
 
   _getConnection: (id) ->
+    that = @
     return new Promise((resolve) ->
-      connection = @@peer.connect(id)
+      connection = that.peer.connect(id)
       if connection
-        connection.on('data', (data) -> @@@_onData(connection, data))
+        connection.on('data', (data) -> that._onData(connection, data))
         if connection.open
           resolve(connection)
         else
@@ -86,23 +87,49 @@ class RPC
           )
     )
 
-  _send: (id, payload) ->
-    return @_getConnection(id)
+  _sendAnswer: (id, payload, connection) ->
+    that = @
+    promise = null
+    if connection
+      promise = Promise.resolve(connection)
+    else
+      promise = that._getConnection(id)
+
+    return promise
+      .then((connection) ->
+        connection.send(payload)
+        that._log('Sending payload to "#{id}": ', payload)
+      )
+
+  _sendInvocation: (id, payload, connection) ->
+    that = @
+    promise = null
+    if connection
+      promise = Promise.resolve(connection)
+    else
+      promise = that._getConnection(id)
+
+    return promise
       .then((connection) ->
         return new Promise((resolve, reject) ->
-          @@@_timeouts[payload.signature] = setTimeout(() ->
+          that._timeouts[payload.signature] = setTimeout(() ->
             reject(new Error('Message timed out.'))
-          , @@@timeout)
-          @@@_callbacks[payload.signature] = (result) ->
-            clearTimeout(@@@@_timeouts[payload.signature])
+          , that.timeout)
+          that._callbacks[payload.signature] = (result) ->
+            clearTimeout(that._timeouts[payload.signature])
             if result instanceof Error
               reject(result)
             else
               resolve(result)
           connection.send(payload)
-          @@@_log('Sending payload to "#{id}": ', payload)
         )
       )
+      .then((value) ->
+          that._log('Sending payload to "#{id}": ', payload)
+          return value
+      )
+
+
 
   _log: (message, obj) ->
     if not @debug then return
@@ -110,28 +137,27 @@ class RPC
     console.log('RPC:  #{message} #{CircularJSON.stringify(obj)}')
 
   _handlers: () ->
+    that = @
     return {
     'rpc-ping': (connection, data) ->
       payload = {
         type: 'rpc-pong'
         signature: data.signature
-        orig: @@id
+        orig: that.id
       }
-      @@_log('Sending payload: ', payload)
-      connection.send(payload)
+      that._sendAnswer(data.orig, payload, connection)
 
     'rpc-attr': (connection, data) ->
       payload = {
         type: 'rpc-attr-return'
-        data: @@scope[data.attr]
+        data: that.scope[data.attr]
         signature: data.signature
-        orig: @@id
+        orig: that.id
       }
-      @@_log('Sending payload: ', payload)
-      connection.send(payload)
+      that._sendAnswer(data.orig, payload, connection)
 
     'rpc-invoke': (connection, data) ->
-      if data.func in @@scope
+      if data.func in that.scope
         if data.args == undefined then data.args = []
         if not Array.isArray(data.args) then data.args = [data.args]
         data.args.push((err, result) ->
@@ -139,19 +165,17 @@ class RPC
             type: 'rpc-return'
             data: result
             signature: data.signature
-            orig: @id
+            orig: that.id
           }
-          @@_log('Sending payload: ', payload)
-          connection.send(payload)
+          that._sendAnswer(data.orig, payload, connection)
         )
-        @@scope[data.func].apply(@@scope, data.args)
+        that.scope[data.func].apply(that.scope, data.args)
       else
         payload = {
             type: 'rpc-return'
             data: new Error('unknown function')
             signature: data.signature
-            orig: @@id
+            orig: that.id
         }
-        @@_log('Sending payload: ', payload)
-        connection.send(payload)
+        that._sendAnswer(data.orig, payload, connection)
     }
