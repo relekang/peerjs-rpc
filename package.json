@@ -2,7 +2,7 @@
   "name": "peerjs-rpc",
   "version": "1.2.0",
   "description": "RPC module for peerjs",
-  "main": "lib/RPC.js",
+  "main": "index.js",
   "scripts": {
     "test": "istanbul cover _mocha test/ && istanbul report cobertura"
   },
@@ -25,7 +25,8 @@
     "LICENSE",
     "package.json",
     "README.md",
-    "lib/RPC.js"
+    "lib",
+    "index.js"
   ],
   "dependencies": {
     "and": "0.0.0",
