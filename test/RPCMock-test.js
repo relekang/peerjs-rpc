@@ -27,6 +27,21 @@ describe('RPCMock', function() {
         n2 = new RPCMock('n2', scope);
     });
 
+    it('should use delays', function() {
+        var start = Date.now();
+        n1.delays = {
+            'n2': 250
+        };
+        n2.delays = {
+            'n1': 250
+        };
+        return n1.invoke('n2', 'add', [40, 2]).then(function(answer) {
+            var end = Date.now();
+            expect(answer).to.equal(42);
+            expect(end - start).to.be.above(500);
+        });
+    });
+
     describe('using callbacks', function() {
         it('should ping and receive pong', function(done) {
             n1.ping('n2', function(err, result) {

@@ -11,21 +11,35 @@ class RPCMock extends RPC
     @id = id
     @scope = scope
     mocks[id] = @
+    @delays = {}
 
   _sendInvocation: (id, payload, connection) ->
     that = @
+    delay = 0
+    if id in @delays
+      delay = @delays[id]
     return new Promise((resolve, reject) ->
-      that._timeouts[payload.signature] = setTimeout(() ->
-        reject(new Error('Message timed out.'))
-      , that.timeout)
-      that._callbacks[payload.signature] = (result) ->
-        clearTimeout(that._timeouts[payload.signature])
-        if result instanceof Error
-          reject(result)
-        else
-          resolve(result)
-      mocks[id]._onData(null, payload)
+      setTimeout(() ->
+        that._timeouts[payload.signature] = setTimeout(() ->
+          reject(new Error('Message timed out.'))
+        , that.timeout)
+        that._callbacks[payload.signature] = (result) ->
+          clearTimeout(that._timeouts[payload.signature])
+          if result instanceof Error
+            reject(result)
+          else
+            resolve(result)
+        mocks[id]._onData(null, payload)
+
+      , delay)
     )
 
   _sendAnswer: (id, payload, connection) ->
-    return Promise.resolve(mocks[id]._onData(null, payload))
+    delay = 0
+    if id in @delays
+      delay = @delays[id]
+    return new Promise((resolve) ->
+      setTimeout(() ->
+        resolve(mocks[id]._onData(null, payload))
+      , delay)
+    )
