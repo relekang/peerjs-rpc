@@ -1,6 +1,6 @@
 {
   "name": "peerjs-rpc",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "description": "RPC module for peerjs",
   "main": "index.js",
   "scripts": {
