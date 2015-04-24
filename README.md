@@ -19,57 +19,59 @@ Calls callback with `(err, result)`, where result is the attribute in the given 
 Calls callback with `(err, result)`, where result is the value returned by the callback given to the function in the given scope on the remote node. `arguments` can be one argument or an array with arguments.
 
 ### Examples
-#### [Bailey.js](http://haeric.github.io/bailey.js/)
-```coffee
-import peerjs-rpc as RPC
-
-scope = {
-  hi: (name, callback) -> callback("hi there #{name}!")
-  answer: 42
-}
-rpc = new RPC('node-id', scope)
-
-rpc2 = new RPC('another-node', scope) # running on another node
-
-rpc.ping('another-node', (answer) -> console.log(answer))
-# => true
-
-rpc.invoke('another-node', 'hi', 'R2', (answer) -> console.log(answer))
-# => hi there R2!
-
-rpc.attr('another-node', 'answer', (answer) -> console.log(answer))
-# => 42
-```
-
 #### Javascript
 ```javascript
-var RPC = require("peerjs-rpc");
+var RPC = require("peerjs-rpc").RPC;
 var scope = {
     'hi': function(name, callback) {
         return callback("hi there " + name + "!");
     },
     'answer': 42
 };
-var rpc = new RPC('node-id', scope);
 
+var rpc = new RPC('node-id', scope);
 var rpc2 = new RPC('another-node', scope);
 
-rpc.ping('another-node', function(answer) {
+rpc.ping('another-node')
+  .then(function(answer) {
     return console.log(answer);
 });
 // => true
 
-rpc.invoke('another-node', 'hi', 'R2', function(answer) {
+rpc.invoke('another-node', 'hi', ['R2'])
+  .then(function(answer) {
     return console.log(answer);
 });
 // => hi there R2!
 
-rpc.attr('another-node', 'answer', function(answer) {
+rpc.attr('another-node', 'answer')
+  .then(function(answer) {
     return console.log(answer);
 });
 // => 42
 ```
 
+#### [Bailey.js](http://haeric.github.io/bailey.js/)
+```coffee
+import peerjs-rpc: RPC
+
+scope = {
+  hi: (name, callback) -> callback("hi there #{name}!")
+  answer: 42
+}
+
+rpc = new RPC('node-id', scope)
+rpc2 = new RPC('another-node', scope) # running on another node
+
+rpc.ping('another-node'.then((answer) -> console.log(answer))
+# => true
+
+rpc.invoke('another-node', 'hi', ['R2']).then((answer) -> console.log(answer))
+# => hi there R2!
+
+rpc.attr('another-node', 'answer').then((answer) -> console.log(answer))
+# => 42
+```
 
 ----------------------
 
