@@ -1,6 +1,9 @@
 import sha1
 import bluebird as Promise
-import peerjs as Peer
+try
+  Peer = require('peerjs')
+catch error
+  Peer = undefined
 
 export RPC
 
@@ -61,7 +64,7 @@ class RPC
 
   _onData: (connection, data) ->
     if not 'type' in data then return
-    
+
     @_log('Received data: ', data)
 
     if data.type.match(/^rpc-(:?ping|attr|invoke)$/)
