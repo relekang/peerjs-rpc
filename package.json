@@ -1,6 +1,6 @@
 {
   "name": "peerjs-rpc",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "RPC module for peerjs",
   "main": "lib/RPC.js",
   "scripts": {
@@ -25,7 +25,7 @@
     "LICENSE",
     "package.json",
     "README.md",
-    "lib/RPC"
+    "lib/RPC.js"
   ],
   "dependencies": {
     "and": "0.0.0",
