@@ -21,7 +21,7 @@ Calls callback with `(err, result)`, where result is the value returned by the c
 ### Examples
 #### Javascript
 ```javascript
-var RPC = require("peerjs-rpc").RPC;
+var RPC = require("peerjs-rpc");
 var scope = {
     'hi': function(name, callback) {
         return callback("hi there " + name + "!");
@@ -53,7 +53,7 @@ rpc.attr('another-node', 'answer')
 
 #### [Bailey.js](http://haeric.github.io/bailey.js/)
 ```coffee
-import peerjs-rpc: RPC
+import peerjs-rpc as RPC
 
 scope = {
   hi: (name, callback) -> callback("hi there #{name}!")
