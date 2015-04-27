@@ -41,6 +41,14 @@ describe('RPC', function() {
         });
     });
 
+    describe('.invoke()', function() {
+        it('should only accept list as argument', function() {
+            expect(function() {
+                return n2.invoke('n1', 'pinger');
+            }).to.throw(Error, 'args must be an array.');
+        });
+    });
+
     describe('using callbacks', function() {
         it('should ping and receive pong', function(done) {
             n1.ping('n2', function(err, result) {
@@ -60,7 +68,7 @@ describe('RPC', function() {
         });
 
         it('should invoke with no arguments and return value', function(done) {
-            n1.invoke('n2', 'pinger', undefined, function(err, result) {
+            n1.invoke('n2', 'pinger', [], function(err, result) {
                 if (err) {
                     return done(err)
                 }
@@ -71,7 +79,7 @@ describe('RPC', function() {
         });
 
         it('should invoke with one argument and return value', function(done) {
-            n1.invoke('n2', 'ping', '42', function(err, result) {
+            n1.invoke('n2', 'ping', ['42'], function(err, result) {
                 if (err) {
                     return done(err)
                 }
@@ -100,7 +108,7 @@ describe('RPC', function() {
         });
 
         it('should be able to reference scope in invoked functions', function(done) {
-            n1.invoke('n2', 'getAnswer', undefined, function(err, result) {
+            n1.invoke('n2', 'getAnswer', [], function(err, result) {
                 if (err) {
                     return done(err)
                 }
@@ -111,7 +119,7 @@ describe('RPC', function() {
         });
 
         it('should return error if the function does not exits', function(done) {
-            n1.invoke('n2', 'non-existing-function', undefined, function(err, result) {
+            n1.invoke('n2', 'non-existing-function', [], function(err, result) {
                 expect(err.message).to.equal('unknown function');
                 done();
             });
@@ -146,13 +154,13 @@ describe('RPC', function() {
         });
 
         it('should invoke with no arguments and return value', function() {
-            return n1.invoke('n2', 'pinger', undefined).then(function(result) {
+            return n1.invoke('n2', 'pinger', []).then(function(result) {
                 expect(result).to.equal('pong');
             });
         });
 
         it('should invoke with one argument and return value', function() {
-            return n1.invoke('n2', 'ping', '42').then(function(result) {
+            return n1.invoke('n2', 'ping', ['42']).then(function(result) {
                 expect(result).to.equal('pong: 42');
             });
         });
@@ -174,14 +182,14 @@ describe('RPC', function() {
         });
 
         it('should be able to reference scope in invoked functions', function() {
-            return n1.invoke('n2', 'getAnswer', undefined).then(function(result) {
+            return n1.invoke('n2', 'getAnswer', []).then(function(result) {
                 expect(result).to.equal(42);
             });
         });
 
         it('should return error if the function does not exits', function() {
             var catched = false;
-            return n1.invoke('n2', 'non-existing-function').catch(function(err) {
+            return n1.invoke('n2', 'non-existing-function', []).catch(function(err) {
                 expect(err.message).to.equal('unknown function');
                 catched = true;
             }).then(function() {

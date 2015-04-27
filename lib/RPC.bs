@@ -29,6 +29,7 @@ class RPC
     )
 
   invoke: (id, func, args, callback) ->
+    if not Array.isArray(args) then throw new Error('args must be an array.')
     payload = {
       type: 'rpc-invoke'
       func: func
