@@ -1,8 +1,10 @@
 import chai: expect
+import bluebird as Promise
 import mock-require as mr
 import peerjs-mock as PeerMock
 
 mr('peerjs', PeerMock)
+Promise.longStackTraces()
 
 RPC = require('../lib/RPC')
 
@@ -12,6 +14,7 @@ describe('RPC', () ->
     pinger: (callback) -> callback(null, 'pong')
     add: (arg1, arg2, callback) -> callback(null, arg1 + arg2)
     getAnswer: (callback) -> callback(null, @answer)
+    error: (callback) -> callback(new Error('this is an error'))
     answer: 42
   }
 
@@ -19,8 +22,8 @@ describe('RPC', () ->
   n2 = null
 
   beforeEach(() ->
-    n1 = new RPC('n1', scope)
-    n2 = new RPC('n2', scope)
+    n1 = new RPC('n1', scope, {debug: false})
+    n2 = new RPC('n2', scope, {debug: false})
   )
 
   describe('using callbacks', () ->
@@ -53,6 +56,13 @@ describe('RPC', () ->
         if err then return done(err)
 
         expect(result).to.equal('pong: 42')
+        done()
+      )
+    )
+
+    it('should return error of invoked function', (done) ->
+      n1.invoke('n2', 'error', [], (err, result) ->
+        expect(err.message).to.equal('this is an error')
         done()
       )
     )
@@ -120,6 +130,16 @@ describe('RPC', () ->
         .then((result) ->
           expect(result).to.equal('pong: 42')
         )
+    )
+
+    it('should return error of invoked function', () ->
+      catched = false
+      return n1.invoke('n2', 'error', [])
+        .catch((error) ->
+          expect(error.message).to.equal('this is an error')
+          catched = true
+        )
+        .then(() -> expect(catched).to.be.true)
     )
 
     it('should invoke with multiple arguments and return value', () ->

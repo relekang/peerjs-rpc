@@ -1,9 +1,11 @@
 var __module_chai = require("chai");
+var Promise = require("bluebird");
 var mr = require("mock-require");
 var PeerMock = require("peerjs-mock");
 var expect = __module_chai.expect;
 
 mr('peerjs', PeerMock);
+Promise.longStackTraces();
 
 var RPC = require('../lib/RPC');
 
@@ -21,6 +23,9 @@ describe('RPC', function() {
         'getAnswer': function(callback) {
             return callback(null, this.answer);
         },
+        'error': function(callback) {
+            return callback(new Error('this is an error'));
+        },
         'answer': 42
     };
 
@@ -28,8 +33,12 @@ describe('RPC', function() {
     var n2 = null;
 
     beforeEach(function() {
-        n1 = new RPC('n1', scope);
-        n2 = new RPC('n2', scope);
+        n1 = new RPC('n1', scope, {
+            'debug': false
+        });
+        n2 = new RPC('n2', scope, {
+            'debug': false
+        });
     });
 
     describe('using callbacks', function() {
@@ -68,6 +77,13 @@ describe('RPC', function() {
                 }
 
                 expect(result).to.equal('pong: 42');
+                done();
+            });
+        });
+
+        it('should return error of invoked function', function(done) {
+            n1.invoke('n2', 'error', [], function(err, result) {
+                expect(err.message).to.equal('this is an error');
                 done();
             });
         });
@@ -141,6 +157,16 @@ describe('RPC', function() {
             });
         });
 
+        it('should return error of invoked function', function() {
+            var catched = false;
+            return n1.invoke('n2', 'error', []).catch(function(error) {
+                expect(error.message).to.equal('this is an error');
+                catched = true;
+            }).then(function() {
+                return expect(catched).to.be.true;
+            });
+        });
+
         it('should invoke with multiple arguments and return value', function() {
             return n1.invoke('n2', 'add', [40, 2]).then(function(result) {
                 expect(result).to.equal(42);
@@ -173,6 +199,7 @@ describe('RPC', function() {
 
 
 module.exports = {
+    'Promise': Promise,
     'mr': mr,
     'PeerMock': PeerMock,
     'RPC': RPC,

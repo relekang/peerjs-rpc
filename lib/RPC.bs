@@ -54,8 +54,8 @@ class RPC
       signature: @_createSignature(@id, id, 'ping')
     }
     return @_sendInvocation(id, payload)
-      .catch((err) ->
-        if err.message.match(/timed out/)
+      .catch((error) ->
+        if error.message.match(/timed out/)
           return false
         throw err
       ).nodeify(callback)
@@ -71,10 +71,10 @@ class RPC
       @_handlers()[data.type].bind(@)(connection, data)
 
     else if data.type.match(/return/)
-      @_callbacks[data.signature](data.data)
+      @_callbacks[data.signature](data.error, data.data)
 
     else if data.type.match(/pong/)
-      @_callbacks[data.signature](true)
+      @_callbacks[data.signature](null, true)
 
   _getConnection: (id) ->
     that = @
@@ -118,12 +118,14 @@ class RPC
           that._timeouts[payload.signature] = setTimeout(() ->
             reject(new Error('Message timed out.'))
           , that.timeout)
-          that._callbacks[payload.signature] = (result) ->
+
+          that._callbacks[payload.signature] = (err, result) ->
             clearTimeout(that._timeouts[payload.signature])
-            if result instanceof Error
-              reject(result)
+            if err
+              reject(err)
             else
               resolve(result)
+
           connection.send(payload)
         )
       )
@@ -163,20 +165,24 @@ class RPC
       if data.func in that.scope
         if data.args == undefined then data.args = []
         if not Array.isArray(data.args) then data.args = [data.args]
-        data.args.push((err, result) ->
+        data.args.push((error, result) ->
           payload = {
             type: 'rpc-return'
-            data: result
+            data: result or null
+            error: null
             signature: data.signature
             orig: that.id
           }
+          if error
+            payload.error = error
           that._sendAnswer(data.orig, payload, connection)
         )
         that.scope[data.func].apply(that.scope, data.args)
       else
         payload = {
             type: 'rpc-return'
-            data: new Error('unknown function')
+            data: null
+            error: new Error('unknown function')
             signature: data.signature
             orig: that.id
         }
