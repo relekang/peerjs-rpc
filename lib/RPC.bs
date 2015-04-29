@@ -165,8 +165,6 @@ class RPC
 
     'rpc-invoke': (connection, data) ->
       if data.func in that.scope
-        if data.args == undefined then data.args = []
-        if not Array.isArray(data.args) then data.args = [data.args]
         data.args.push((error, result) ->
           payload = {
             type: 'rpc-return'
