@@ -46,6 +46,7 @@
     "karma-phantomjs-launcher": "*",
     "mocha": "*",
     "mock-require": "^1.0.5",
-    "peerjs-mock": "git://github.com/relekang/peerjs-mock"
+    "peerjs-mock": "git://github.com/relekang/peerjs-mock",
+    "sinon": "^1.14.1"
   }
 }

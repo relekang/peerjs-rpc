@@ -1,6 +1,7 @@
 import chai: expect
 import bluebird as Promise
 import mock-require as mr
+import sinon
 import peerjs-mock as PeerMock
 
 mr('peerjs', PeerMock)
@@ -30,190 +31,217 @@ describe('RPC', () ->
     it('should only accept list as argument', () ->
       expect(() -> n2.invoke('n1', 'pinger')).to.throw(Error, 'args must be an array.')
     )
-  )
 
-  describe('using callbacks', () ->
-    it('should ping and receive pong', (done) ->
-      n1.ping('n2', (err, result) ->
-        expect(result).to.be.truthy
-        done()
-      )
-    )
+    describe('using callbacks', () ->
+      it('should invoke with no arguments and return value', (done) ->
+        n1.invoke('n2', 'pinger', [], (err, result) ->
+          if err then return done(err)
 
-    it('should return false if ping times out', (done) ->
-      n = new RPC('n', scope, { timeout: 1 })
-      n.ping('n2', (err, result) ->
-        expect(result).to.be.false
-        done()
-      )
-    )
-
-    it('should reject with error from ping', (done) ->
-      n1._handlers = () -> {
-        'rpc-ping': (connection, data) ->
-          payload = {
-            type: 'rpc-pong',
-            signature: data.signature,
-            error: new Error('an error')
-          }
-          n1._sendAnswer(data.orig, payload, connection)
-      }
-      n2.ping('n1', (err, callback) ->
-        expect(err.message).to.equal('an error')
-        done()
-      )
-    )
-
-    it('should invoke with no arguments and return value', (done) ->
-      n1.invoke('n2', 'pinger', [], (err, result) ->
-        if err then return done(err)
-
-        expect(result).to.equal('pong')
-        done()
-      )
-    )
-
-    it('should invoke with one argument and return value', (done) ->
-      n1.invoke('n2', 'ping', ['42'], (err, result) ->
-        if err then return done(err)
-
-        expect(result).to.equal('pong: 42')
-        done()
-      )
-    )
-
-    it('should return error of invoked function', (done) ->
-      n1.invoke('n2', 'error', [], (err, result) ->
-        expect(err.message).to.equal('this is an error')
-        done()
-      )
-    )
-
-    it('should invoke with multiple arguments and return value', (done) ->
-      n1.invoke('n2', 'add', [40, 2], (err, result) ->
-        if err then return done(err)
-
-        expect(result).to.equal(42)
-        done()
-      )
-    )
-
-    it('should be able to reference scope in invoked functions', (done) ->
-      n1.invoke('n2', 'getAnswer', [], (err, result) ->
-        if err then return done(err)
-
-        expect(result).to.equal(42)
-        done()
-      )
-    )
-
-    it('should return error if the function does not exits', (done) ->
-      n1.invoke('n2', 'non-existing-function', [], (err, result) ->
-        expect(err.message).to.equal('unknown function')
-        done()
-      )
-    )
-
-    it('should return attribute value', (done) ->
-      n1.attr('n2', 'answer', (err, result) ->
-        if err then return done(err)
-
-        expect(result).to.equal(42)
-        done()
-      )
-    )
-  )
-
-  describe('using promises', () ->
-    it('should ping and receive pong', () ->
-      return n1.ping('n2')
-        .then((result) ->
-          expect(result).to.be.true
-        )
-    )
-
-    it('should return false if ping times out', () ->
-      n = new RPC('n', scope, { timeout: 1 })
-      return n.ping('n2')
-        .then((result) ->
-          expect(result).to.be.false
-        )
-    )
-
-    it('should reject with error from ping', () ->
-      n1._handlers = () -> {
-        'rpc-ping': (connection, data) ->
-          payload = {
-            type: 'rpc-pong',
-            signature: data.signature,
-            error: new Error('an error')
-          }
-          n1._sendAnswer(data.orig, payload, connection)
-      }
-      catched = false
-      return n2.ping('n1')
-        .catch((err) ->
-          catched = true
-          expect(err.message).to.equal('an error')
-        )
-        .then(() ->
-          expect(catched).to.be.true
-        )
-    )
-
-    it('should invoke with no arguments and return value', () ->
-      return n1.invoke('n2', 'pinger', [])
-        .then((result) ->
           expect(result).to.equal('pong')
+          done()
         )
-    )
+      )
 
-    it('should invoke with one argument and return value', () ->
-      return n1.invoke('n2', 'ping', ['42'])
-        .then((result) ->
+      it('should invoke with one argument and return value', (done) ->
+        n1.invoke('n2', 'ping', ['42'], (err, result) ->
+          if err then return done(err)
+
           expect(result).to.equal('pong: 42')
+          done()
         )
-    )
+      )
 
-    it('should return error of invoked function', () ->
-      catched = false
-      return n1.invoke('n2', 'error', [])
-        .catch((error) ->
-          expect(error.message).to.equal('this is an error')
-          catched = true
+      it('should return error of invoked function', (done) ->
+        n1.invoke('n2', 'error', [], (err, result) ->
+          expect(err.message).to.equal('this is an error')
+          done()
         )
-        .then(() -> expect(catched).to.be.true)
-    )
+      )
 
-    it('should invoke with multiple arguments and return value', () ->
-      return n1.invoke('n2', 'add', [40, 2])
-        .then((result) ->
+      it('should invoke with multiple arguments and return value', (done) ->
+        n1.invoke('n2', 'add', [40, 2], (err, result) ->
+          if err then return done(err)
+
           expect(result).to.equal(42)
+          done()
         )
-    )
+      )
 
-    it('should be able to reference scope in invoked functions', () ->
-      return n1.invoke('n2', 'getAnswer', [])
-        .then((result) ->
+      it('should be able to reference scope in invoked functions', (done) ->
+        n1.invoke('n2', 'getAnswer', [], (err, result) ->
+          if err then return done(err)
+
           expect(result).to.equal(42)
+          done()
         )
-    )
+      )
 
-    it('should return error if the function does not exits', () ->
-      catched = false
-      return n1.invoke('n2', 'non-existing-function', [])
-        .catch((err) ->
+      it('should return error if the function does not exits', (done) ->
+        n1.invoke('n2', 'non-existing-function', [], (err, result) ->
           expect(err.message).to.equal('unknown function')
-          catched = true
+          done()
         )
-        .then(() -> expect(catched).to.be.true)
+      )
+    )
+    describe('using promises', () ->
+      it('should invoke with no arguments and return value', () ->
+        return n1.invoke('n2', 'pinger', [])
+          .then((result) ->
+            expect(result).to.equal('pong')
+          )
+      )
+
+      it('should invoke with one argument and return value', () ->
+        return n1.invoke('n2', 'ping', ['42'])
+          .then((result) ->
+            expect(result).to.equal('pong: 42')
+          )
+      )
+
+      it('should return error of invoked function', () ->
+        catched = false
+        return n1.invoke('n2', 'error', [])
+          .catch((error) ->
+            expect(error.message).to.equal('this is an error')
+            catched = true
+          )
+          .then(() -> expect(catched).to.be.true)
+      )
+
+      it('should invoke with multiple arguments and return value', () ->
+        return n1.invoke('n2', 'add', [40, 2])
+          .then((result) ->
+            expect(result).to.equal(42)
+          )
+      )
+
+      it('should be able to reference scope in invoked functions', () ->
+        return n1.invoke('n2', 'getAnswer', [])
+          .then((result) ->
+            expect(result).to.equal(42)
+          )
+      )
+
+      it('should return error if the function does not exits', () ->
+        catched = false
+        return n1.invoke('n2', 'non-existing-function', [])
+          .catch((err) ->
+            expect(err.message).to.equal('unknown function')
+            catched = true
+          )
+          .then(() -> expect(catched).to.be.true)
+      )
+    )
+  )
+
+  describe('.attr()', () ->
+    describe('using callbacks', () ->
+      it('should return attribute value', (done) ->
+        n1.attr('n2', 'answer', (err, result) ->
+          if err then return done(err)
+
+          expect(result).to.equal(42)
+          done()
+        )
+      )
     )
 
-    it('should return attribute value', () ->
-      return n1.attr('n2', 'answer')
-        .then((result) ->
-          expect(result).to.equal(42)
+    describe('using promises', () ->
+      it('should return attribute value', () ->
+        return n1.attr('n2', 'answer')
+          .then((result) ->
+            expect(result).to.equal(42)
+          )
+      )
+    )
+  )
+
+  describe('.ping()', () ->
+    describe('using callbacks', () ->
+      it('should ping and receive pong', (done) ->
+        n1.ping('n2', (err, result) ->
+          expect(result).to.be.truthy
+          done()
         )
+      )
+
+      it('should return false if ping times out', (done) ->
+        n = new RPC('n', scope, { timeout: 1 })
+        n.ping('n2', (err, result) ->
+          expect(result).to.be.false
+          done()
+        )
+      )
+
+      it('should reject with error from ping', (done) ->
+        n1._handlers = () -> {
+          'rpc-ping': (connection, data) ->
+            payload = {
+              type: 'rpc-pong',
+              signature: data.signature,
+              error: new Error('an error')
+            }
+            n1._sendAnswer(data.orig, payload, connection)
+        }
+        n2.ping('n1', (err, callback) ->
+          expect(err.message).to.equal('an error')
+          done()
+        )
+      )
+    )
+    describe('using promises', () ->
+      it('should ping and receive pong', () ->
+        return n1.ping('n2')
+          .then((result) ->
+            expect(result).to.be.true
+          )
+      )
+
+      it('should return false if ping times out', () ->
+        n = new RPC('n', scope, { timeout: 1 })
+        return n.ping('n2')
+          .then((result) ->
+            expect(result).to.be.false
+          )
+      )
+
+      it('should reject with error from ping', () ->
+        n1._handlers = () -> {
+          'rpc-ping': (connection, data) ->
+            payload = {
+              type: 'rpc-pong',
+              signature: data.signature,
+              error: new Error('an error')
+            }
+            n1._sendAnswer(data.orig, payload, connection)
+        }
+        catched = false
+        return n2.ping('n1')
+          .catch((err) ->
+            catched = true
+            expect(err.message).to.equal('an error')
+          )
+          .then(() ->
+            expect(catched).to.be.true
+          )
+      )
+    )
+  )
+
+  describe('._log()', () ->
+    it('should not log if debug is false', () ->
+      sinon.stub(console, 'log')
+      n1._log('message', {})
+      expect(console.log.calledOnce).to.be.false
+      console.log.restore()
+    )
+
+    it('should log if debug is true', () ->
+      sinon.stub(console, 'log')
+      n1.debug = true
+      n1._log('message', {})
+      expect(console.log.calledOnce).to.be.true
+      console.log.restore()
     )
   )
 )

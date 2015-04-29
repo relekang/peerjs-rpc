@@ -2,6 +2,7 @@
 var __module_chai = require("chai");
 var Promise = require("bluebird");
 var mr = require("mock-require");
+var sinon = require("sinon");
 var PeerMock = require("peerjs-mock");
 var expect = __module_chai.expect;
 
@@ -48,201 +49,228 @@ describe('RPC', function() {
                 return n2.invoke('n1', 'pinger');
             }).to.throw(Error, 'args must be an array.');
         });
+
+        describe('using callbacks', function() {
+            it('should invoke with no arguments and return value', function(done) {
+                n1.invoke('n2', 'pinger', [], function(err, result) {
+                    if (err) {
+                        return done(err)
+                    }
+
+                    expect(result).to.equal('pong');
+                    done();
+                });
+            });
+
+            it('should invoke with one argument and return value', function(done) {
+                n1.invoke('n2', 'ping', ['42'], function(err, result) {
+                    if (err) {
+                        return done(err)
+                    }
+
+                    expect(result).to.equal('pong: 42');
+                    done();
+                });
+            });
+
+            it('should return error of invoked function', function(done) {
+                n1.invoke('n2', 'error', [], function(err, result) {
+                    expect(err.message).to.equal('this is an error');
+                    done();
+                });
+            });
+
+            it('should invoke with multiple arguments and return value', function(done) {
+                n1.invoke('n2', 'add', [40, 2], function(err, result) {
+                    if (err) {
+                        return done(err)
+                    }
+
+                    expect(result).to.equal(42);
+                    done();
+                });
+            });
+
+            it('should be able to reference scope in invoked functions', function(done) {
+                n1.invoke('n2', 'getAnswer', [], function(err, result) {
+                    if (err) {
+                        return done(err)
+                    }
+
+                    expect(result).to.equal(42);
+                    done();
+                });
+            });
+
+            it('should return error if the function does not exits', function(done) {
+                n1.invoke('n2', 'non-existing-function', [], function(err, result) {
+                    expect(err.message).to.equal('unknown function');
+                    done();
+                });
+            });
+        });
+        describe('using promises', function() {
+            it('should invoke with no arguments and return value', function() {
+                return n1.invoke('n2', 'pinger', []).then(function(result) {
+                    expect(result).to.equal('pong');
+                });
+            });
+
+            it('should invoke with one argument and return value', function() {
+                return n1.invoke('n2', 'ping', ['42']).then(function(result) {
+                    expect(result).to.equal('pong: 42');
+                });
+            });
+
+            it('should return error of invoked function', function() {
+                var catched = false;
+                return n1.invoke('n2', 'error', []).catch(function(error) {
+                    expect(error.message).to.equal('this is an error');
+                    catched = true;
+                }).then(function() {
+                    return expect(catched).to.be.true;
+                });
+            });
+
+            it('should invoke with multiple arguments and return value', function() {
+                return n1.invoke('n2', 'add', [40, 2]).then(function(result) {
+                    expect(result).to.equal(42);
+                });
+            });
+
+            it('should be able to reference scope in invoked functions', function() {
+                return n1.invoke('n2', 'getAnswer', []).then(function(result) {
+                    expect(result).to.equal(42);
+                });
+            });
+
+            it('should return error if the function does not exits', function() {
+                var catched = false;
+                return n1.invoke('n2', 'non-existing-function', []).catch(function(err) {
+                    expect(err.message).to.equal('unknown function');
+                    catched = true;
+                }).then(function() {
+                    return expect(catched).to.be.true;
+                });
+            });
+        });
     });
 
-    describe('using callbacks', function() {
-        it('should ping and receive pong', function(done) {
-            n1.ping('n2', function(err, result) {
-                expect(result).to.be.truthy;
-                done();
-            });
-        });
-
-        it('should return false if ping times out', function(done) {
-            var n = new RPC('n', scope, {
-                'timeout': 1
-            });
-            n.ping('n2', function(err, result) {
-                expect(result).to.be.false;
-                done();
-            });
-        });
-
-        it('should reject with error from ping', function(done) {
-            n1._handlers = function _handlers() {
-                return {
-                    'rpc-ping': function(connection, data) {
-                        var payload = {
-                            'type': 'rpc-pong',
-                            'signature': data.signature,
-                            'error': new Error('an error')
-                        };
-                        n1._sendAnswer(data.orig, payload, connection);
+    describe('.attr()', function() {
+        describe('using callbacks', function() {
+            it('should return attribute value', function(done) {
+                n1.attr('n2', 'answer', function(err, result) {
+                    if (err) {
+                        return done(err)
                     }
-                };
-            };
-            n2.ping('n1', function(err, callback) {
-                expect(err.message).to.equal('an error');
-                done();
+
+                    expect(result).to.equal(42);
+                    done();
+                });
             });
         });
 
-        it('should invoke with no arguments and return value', function(done) {
-            n1.invoke('n2', 'pinger', [], function(err, result) {
-                if (err) {
-                    return done(err)
-                }
-
-                expect(result).to.equal('pong');
-                done();
-            });
-        });
-
-        it('should invoke with one argument and return value', function(done) {
-            n1.invoke('n2', 'ping', ['42'], function(err, result) {
-                if (err) {
-                    return done(err)
-                }
-
-                expect(result).to.equal('pong: 42');
-                done();
-            });
-        });
-
-        it('should return error of invoked function', function(done) {
-            n1.invoke('n2', 'error', [], function(err, result) {
-                expect(err.message).to.equal('this is an error');
-                done();
-            });
-        });
-
-        it('should invoke with multiple arguments and return value', function(done) {
-            n1.invoke('n2', 'add', [40, 2], function(err, result) {
-                if (err) {
-                    return done(err)
-                }
-
-                expect(result).to.equal(42);
-                done();
-            });
-        });
-
-        it('should be able to reference scope in invoked functions', function(done) {
-            n1.invoke('n2', 'getAnswer', [], function(err, result) {
-                if (err) {
-                    return done(err)
-                }
-
-                expect(result).to.equal(42);
-                done();
-            });
-        });
-
-        it('should return error if the function does not exits', function(done) {
-            n1.invoke('n2', 'non-existing-function', [], function(err, result) {
-                expect(err.message).to.equal('unknown function');
-                done();
-            });
-        });
-
-        it('should return attribute value', function(done) {
-            n1.attr('n2', 'answer', function(err, result) {
-                if (err) {
-                    return done(err)
-                }
-
-                expect(result).to.equal(42);
-                done();
+        describe('using promises', function() {
+            it('should return attribute value', function() {
+                return n1.attr('n2', 'answer').then(function(result) {
+                    expect(result).to.equal(42);
+                });
             });
         });
     });
 
-    describe('using promises', function() {
-        it('should ping and receive pong', function() {
-            return n1.ping('n2').then(function(result) {
-                expect(result).to.be.true;
+    describe('.ping()', function() {
+        describe('using callbacks', function() {
+            it('should ping and receive pong', function(done) {
+                n1.ping('n2', function(err, result) {
+                    expect(result).to.be.truthy;
+                    done();
+                });
             });
-        });
 
-        it('should return false if ping times out', function() {
-            var n = new RPC('n', scope, {
-                'timeout': 1
+            it('should return false if ping times out', function(done) {
+                var n = new RPC('n', scope, {
+                    'timeout': 1
+                });
+                n.ping('n2', function(err, result) {
+                    expect(result).to.be.false;
+                    done();
+                });
             });
-            return n.ping('n2').then(function(result) {
-                expect(result).to.be.false;
-            });
-        });
 
-        it('should reject with error from ping', function() {
-            n1._handlers = function _handlers() {
-                return {
-                    'rpc-ping': function(connection, data) {
-                        var payload = {
-                            'type': 'rpc-pong',
-                            'signature': data.signature,
-                            'error': new Error('an error')
-                        };
-                        n1._sendAnswer(data.orig, payload, connection);
-                    }
+            it('should reject with error from ping', function(done) {
+                n1._handlers = function _handlers() {
+                    return {
+                        'rpc-ping': function(connection, data) {
+                            var payload = {
+                                'type': 'rpc-pong',
+                                'signature': data.signature,
+                                'error': new Error('an error')
+                            };
+                            n1._sendAnswer(data.orig, payload, connection);
+                        }
+                    };
                 };
-            };
-            var catched = false;
-            return n2.ping('n1').catch(function(err) {
-                catched = true;
-                expect(err.message).to.equal('an error');
-            }).then(function() {
-                expect(catched).to.be.true;
+                n2.ping('n1', function(err, callback) {
+                    expect(err.message).to.equal('an error');
+                    done();
+                });
             });
         });
+        describe('using promises', function() {
+            it('should ping and receive pong', function() {
+                return n1.ping('n2').then(function(result) {
+                    expect(result).to.be.true;
+                });
+            });
 
-        it('should invoke with no arguments and return value', function() {
-            return n1.invoke('n2', 'pinger', []).then(function(result) {
-                expect(result).to.equal('pong');
+            it('should return false if ping times out', function() {
+                var n = new RPC('n', scope, {
+                    'timeout': 1
+                });
+                return n.ping('n2').then(function(result) {
+                    expect(result).to.be.false;
+                });
+            });
+
+            it('should reject with error from ping', function() {
+                n1._handlers = function _handlers() {
+                    return {
+                        'rpc-ping': function(connection, data) {
+                            var payload = {
+                                'type': 'rpc-pong',
+                                'signature': data.signature,
+                                'error': new Error('an error')
+                            };
+                            n1._sendAnswer(data.orig, payload, connection);
+                        }
+                    };
+                };
+                var catched = false;
+                return n2.ping('n1').catch(function(err) {
+                    catched = true;
+                    expect(err.message).to.equal('an error');
+                }).then(function() {
+                    expect(catched).to.be.true;
+                });
             });
         });
+    });
 
-        it('should invoke with one argument and return value', function() {
-            return n1.invoke('n2', 'ping', ['42']).then(function(result) {
-                expect(result).to.equal('pong: 42');
-            });
+    describe('._log()', function() {
+        it('should not log if debug is false', function() {
+            sinon.stub(console, 'log');
+            n1._log('message', {});
+            expect(console.log.calledOnce).to.be.false;
+            console.log.restore();
         });
 
-        it('should return error of invoked function', function() {
-            var catched = false;
-            return n1.invoke('n2', 'error', []).catch(function(error) {
-                expect(error.message).to.equal('this is an error');
-                catched = true;
-            }).then(function() {
-                return expect(catched).to.be.true;
-            });
-        });
-
-        it('should invoke with multiple arguments and return value', function() {
-            return n1.invoke('n2', 'add', [40, 2]).then(function(result) {
-                expect(result).to.equal(42);
-            });
-        });
-
-        it('should be able to reference scope in invoked functions', function() {
-            return n1.invoke('n2', 'getAnswer', []).then(function(result) {
-                expect(result).to.equal(42);
-            });
-        });
-
-        it('should return error if the function does not exits', function() {
-            var catched = false;
-            return n1.invoke('n2', 'non-existing-function', []).catch(function(err) {
-                expect(err.message).to.equal('unknown function');
-                catched = true;
-            }).then(function() {
-                return expect(catched).to.be.true;
-            });
-        });
-
-        it('should return attribute value', function() {
-            return n1.attr('n2', 'answer').then(function(result) {
-                expect(result).to.equal(42);
-            });
+        it('should log if debug is true', function() {
+            sinon.stub(console, 'log');
+            n1.debug = true;
+            n1._log('message', {});
+            expect(console.log.calledOnce).to.be.true;
+            console.log.restore();
         });
     });
 });
@@ -251,6 +279,7 @@ describe('RPC', function() {
 module.exports = {
     'Promise': Promise,
     'mr': mr,
+    'sinon': sinon,
     'PeerMock': PeerMock,
     'RPC': RPC,
     'expect': expect
