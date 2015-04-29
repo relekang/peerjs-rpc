@@ -28,7 +28,7 @@ describe('RPC', () ->
 
   describe('.invoke()', () ->
     it('should only accept list as argument', () ->
-      expect(() ->n2.invoke('n1', 'pinger')).to.throw(Error, 'args must be an array.')
+      expect(() -> n2.invoke('n1', 'pinger')).to.throw(Error, 'args must be an array.')
     )
   )
 
@@ -44,6 +44,22 @@ describe('RPC', () ->
       n = new RPC('n', scope, { timeout: 1 })
       n.ping('n2', (err, result) ->
         expect(result).to.be.false
+        done()
+      )
+    )
+
+    it('should reject with error from ping', (done) ->
+      n1._handlers = () -> {
+        'rpc-ping': (connection, data) ->
+          payload = {
+            type: 'rpc-pong',
+            signature: data.signature,
+            error: new Error('an error')
+          }
+          n1._sendAnswer(data.orig, payload, connection)
+      }
+      n2.ping('n1', (err, callback) ->
+        expect(err.message).to.equal('an error')
         done()
       )
     )
@@ -121,6 +137,27 @@ describe('RPC', () ->
       return n.ping('n2')
         .then((result) ->
           expect(result).to.be.false
+        )
+    )
+
+    it('should reject with error from ping', () ->
+      n1._handlers = () -> {
+        'rpc-ping': (connection, data) ->
+          payload = {
+            type: 'rpc-pong',
+            signature: data.signature,
+            error: new Error('an error')
+          }
+          n1._sendAnswer(data.orig, payload, connection)
+      }
+      catched = false
+      return n2.ping('n1')
+        .catch((err) ->
+          catched = true
+          expect(err.message).to.equal('an error')
+        )
+        .then(() ->
+          expect(catched).to.be.true
         )
     )
 

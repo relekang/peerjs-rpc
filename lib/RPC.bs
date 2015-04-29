@@ -59,7 +59,7 @@ class RPC
       .catch((error) ->
         if error.message.match(/timed out/)
           return false
-        throw err
+        throw error
       ).nodeify(callback)
 
   _createSignature: (from, to, func) -> sha1('#{Date.now()}:#{from}:#{to}:#{func}')
@@ -76,7 +76,7 @@ class RPC
       @_callbacks[data.signature](data.error, data.data)
 
     else if data.type.match(/pong/)
-      @_callbacks[data.signature](null, true)
+      @_callbacks[data.signature](data.error, true)
 
   _getConnection: (id) ->
     that = @

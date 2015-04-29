@@ -68,6 +68,25 @@ describe('RPC', function() {
             });
         });
 
+        it('should reject with error from ping', function(done) {
+            n1._handlers = function _handlers() {
+                return {
+                    'rpc-ping': function(connection, data) {
+                        var payload = {
+                            'type': 'rpc-pong',
+                            'signature': data.signature,
+                            'error': new Error('an error')
+                        };
+                        n1._sendAnswer(data.orig, payload, connection);
+                    }
+                };
+            };
+            n2.ping('n1', function(err, callback) {
+                expect(err.message).to.equal('an error');
+                done();
+            });
+        });
+
         it('should invoke with no arguments and return value', function(done) {
             n1.invoke('n2', 'pinger', [], function(err, result) {
                 if (err) {
@@ -151,6 +170,28 @@ describe('RPC', function() {
             });
             return n.ping('n2').then(function(result) {
                 expect(result).to.be.false;
+            });
+        });
+
+        it('should reject with error from ping', function() {
+            n1._handlers = function _handlers() {
+                return {
+                    'rpc-ping': function(connection, data) {
+                        var payload = {
+                            'type': 'rpc-pong',
+                            'signature': data.signature,
+                            'error': new Error('an error')
+                        };
+                        n1._sendAnswer(data.orig, payload, connection);
+                    }
+                };
+            };
+            var catched = false;
+            return n2.ping('n1').catch(function(err) {
+                catched = true;
+                expect(err.message).to.equal('an error');
+            }).then(function() {
+                expect(catched).to.be.true;
             });
         });
 
