@@ -3,6 +3,7 @@ import bluebird as Promise
 try
   Peer = require('peerjs')
 catch error
+  # istanbul ignore next
   Peer = undefined
 
 export RPC

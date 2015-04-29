@@ -2,6 +2,7 @@ all: lib/RPC.js test/RPC-test.js
 
 lib/RPC.js: lib/RPC.bs
 	bailey -c lib
+	sed -i '' 's/\/\/ istanbul ignore next/\/\* istanbul ignore next \*\//' lib/*.js
 
 test/RPC-test.js: test/RPC-test.bs
 	bailey -c test
