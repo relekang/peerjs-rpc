@@ -266,7 +266,7 @@ describe('RPC', function() {
             expect(called).to.be.false;
         });
 
-        it('should log if debug is true', function() {
+        xit('should log if debug is true', function() {
             sinon.stub(console, 'log');
             n1.debug = true;
             n1._log('message', {});
