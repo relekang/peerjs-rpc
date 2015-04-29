@@ -36,7 +36,7 @@
     "test": "^0.6.0"
   },
   "devDependencies": {
-    "bailey": "0.0.15",
+    "bailey": "0.0.16",
     "chai": "*",
     "istanbul": "*",
     "karma": "*",

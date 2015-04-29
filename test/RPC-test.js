@@ -1,3 +1,4 @@
+"use strict";
 var __module_chai = require("chai");
 var Promise = require("bluebird");
 var mr = require("mock-require");
