@@ -261,16 +261,18 @@ describe('RPC', function() {
         it('should not log if debug is false', function() {
             sinon.stub(console, 'log');
             n1._log('message', {});
-            expect(console.log.calledOnce).to.be.false;
+            var called = console.log.calledOnce;
             console.log.restore();
+            expect(called).to.be.false;
         });
 
         it('should log if debug is true', function() {
             sinon.stub(console, 'log');
             n1.debug = true;
             n1._log('message', {});
-            expect(console.log.calledOnce).to.be.true;
+            var called = console.log.calledOnce;
             console.log.restore();
+            expect(called).to.be.true;
         });
     });
 });
