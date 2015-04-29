@@ -1,4 +1,4 @@
-# peerjs-rpc [![Build status](https://ci.frigg.io/badges/relekang/peerjs-rpc/)](https://ci.frigg.io/relekang/peerjs-rpc/last/) [![Coverage status](https://ci.frigg.io/badges/coverage/relekang/peerjs-rpc/)](https://ci.frigg.io/relekang/peerjs-rpc/last/)
+# peerjs-rpc [![Build status](https://ci.frigg.io/badges/relekang/peerjs-rpc/)](https://ci.frigg.io/relekang/peerjs-rpc/last/) [![Coverage status](https://ci.frigg.io/badges/coverage/relekang/peerjs-rpc/)](https://ci.frigg.io/relekang/peerjs-rpc/last/) [![Dependency Status](https://david-dm.org/relekang/peerjs-rpc.svg)](https://david-dm.org/relekang/peerjs-rpc)
 
 RPC module for WebRTC using peerjs.
 
