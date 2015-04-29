@@ -82,14 +82,13 @@ class RPC
     that = @
     return new Promise((resolve) ->
       connection = that.peer.connect(id)
-      if connection
-        connection.on('data', (data) -> that._onData(connection, data))
-        if connection.open
+      connection.on('data', (data) -> that._onData(connection, data))
+      if connection.open
+        resolve(connection)
+      else
+        connection.on('open', (conn) ->
           resolve(connection)
-        else
-          connection.on('open', (conn) ->
-            resolve(connection)
-          )
+        )
     )
 
   _sendAnswer: (id, payload, connection) ->
