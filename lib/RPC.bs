@@ -83,7 +83,8 @@ class RPC
     that = @
     return new Promise((resolve) ->
       if that.peer.connections.hasOwnProperty(id) and that.peer.connections.hasOwnProperty(id)
-        return resolve(that.peer.connections[id][0])
+        connection = that.peer.connections[id][0]
+        if connection.open then return resolve(connection)
 
       connection = that.peer.connect(id)
       connection.on('data', (data) -> that._onData(connection, data))
