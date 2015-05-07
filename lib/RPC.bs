@@ -10,17 +10,18 @@ export RPC
 
 
 class RPC
-  _callbacks: {}
-  _timeouts: {}
-  timeout: 5000
 
   init: (id, scope, options) ->
     that = @
+    @_callbacks = {}
+    @_timeouts = {}
+
     if options
       peerOptions = options.peerOptions or {}
       peerConfig = options.peerConfig or {}
       @debug = options.debug
       @timeout = options.timeout or 5000
+
     @peer = new Peer(id, peerOptions, peerConfig)
     @scope = scope
     @id = id
@@ -81,6 +82,9 @@ class RPC
   _getConnection: (id) ->
     that = @
     return new Promise((resolve) ->
+      if that.peer.connections.hasOwnProperty(id) and that.peer.connections.hasOwnProperty(id)
+        return resolve(that.peer.connections[id][0])
+
       connection = that.peer.connect(id)
       connection.on('data', (data) -> that._onData(connection, data))
       if connection.open
@@ -112,7 +116,6 @@ class RPC
       promise = Promise.resolve(connection)
     else
       promise = that._getConnection(id)
-
     return promise
       .then((connection) ->
         return new Promise((resolve, reject) ->
