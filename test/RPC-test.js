@@ -108,7 +108,21 @@ describe('RPC', function() {
                     done();
                 });
             });
+
+            it('should call itself directly', function(done) {
+                var spy = sinon.spy(n1, '_sendInvocation');
+                n1.invoke('n1', 'add', [40, 2], function(err, result) {
+                    if (err) {
+                        return done(err)
+                    }
+
+                    expect(result).to.equal(42);
+                    expect(spy.called).to.be.false;
+                    done();
+                });
+            });
         });
+
         describe('using promises', function() {
             it('should invoke with no arguments and return value', function() {
                 return n1.invoke('n2', 'pinger', []).then(function(result) {
@@ -153,6 +167,14 @@ describe('RPC', function() {
                     return expect(catched).to.be.true;
                 });
             });
+
+            it('should call itself directly', function() {
+                var spy = sinon.spy(n1, '_sendInvocation');
+                return n1.invoke('n1', 'add', [40, 2]).then(function(result) {
+                    expect(result).to.equal(42);
+                    expect(spy.called).to.be.false;
+                });
+            });
         });
     });
 
@@ -168,12 +190,32 @@ describe('RPC', function() {
                     done();
                 });
             });
+            it('should call itself directly', function(done) {
+                var spy = sinon.spy(n1, '_sendInvocation');
+                n1.attr('n1', 'answer', function(err, result) {
+                    if (err) {
+                        return done(err)
+                    }
+
+                    expect(result).to.equal(42);
+                    expect(spy.called).to.be.false;
+                    done();
+                });
+            });
         });
 
         describe('using promises', function() {
             it('should return attribute value', function() {
                 return n1.attr('n2', 'answer').then(function(result) {
                     expect(result).to.equal(42);
+                });
+            });
+
+            it('should call itself directly', function() {
+                var spy = sinon.spy(n1, '_sendInvocation');
+                return n1.attr('n1', 'answer').then(function(result) {
+                    expect(result).to.equal(42);
+                    expect(spy.called).to.be.false;
                 });
             });
         });
@@ -216,6 +258,18 @@ describe('RPC', function() {
                     done();
                 });
             });
+
+            it('should call itself directly', function(done) {
+                var spy = sinon.spy(n1, '_sendInvocation');
+                return n1.ping('n1', function(err, result) {
+                    if (err) {
+                        return done(err)
+                    }
+                    expect(result).to.true;
+                    expect(spy.called).to.be.false;
+                    done();
+                });
+            });
         });
         describe('using promises', function() {
             it('should ping and receive pong', function() {
@@ -252,6 +306,14 @@ describe('RPC', function() {
                     expect(err.message).to.equal('an error');
                 }).then(function() {
                     expect(catched).to.be.true;
+                });
+            });
+
+            it('should call itself directly', function() {
+                var spy = sinon.spy(n1, '_sendInvocation');
+                return n1.ping('n1').then(function(result) {
+                    expect(result).to.true;
+                    expect(spy.called).to.be.false;
                 });
             });
         });

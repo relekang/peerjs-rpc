@@ -82,7 +82,20 @@ describe('RPC', () ->
           done()
         )
       )
+
+      it('should call itself directly', (done) ->
+        spy = sinon.spy(n1, '_sendInvocation')
+        n1.invoke('n1', 'add', [40, 2], (err, result) ->
+          if err then return done(err)
+
+          expect(result).to.equal(42)
+          expect(spy.called).to.be.false
+          done()
+        )
+      )
+
     )
+
     describe('using promises', () ->
       it('should invoke with no arguments and return value', () ->
         return n1.invoke('n2', 'pinger', [])
@@ -131,6 +144,15 @@ describe('RPC', () ->
           )
           .then(() -> expect(catched).to.be.true)
       )
+
+      it('should call itself directly', () ->
+        spy = sinon.spy(n1, '_sendInvocation')
+        return n1.invoke('n1', 'add', [40, 2])
+          .then((result) ->
+            expect(result).to.equal(42)
+            expect(spy.called).to.be.false
+          )
+      )
     )
   )
 
@@ -144,6 +166,16 @@ describe('RPC', () ->
           done()
         )
       )
+      it('should call itself directly', (done) ->
+        spy = sinon.spy(n1, '_sendInvocation')
+        n1.attr('n1', 'answer', (err, result) ->
+          if err then return done(err)
+
+          expect(result).to.equal(42)
+          expect(spy.called).to.be.false
+          done()
+        )
+      )
     )
 
     describe('using promises', () ->
@@ -151,6 +183,15 @@ describe('RPC', () ->
         return n1.attr('n2', 'answer')
           .then((result) ->
             expect(result).to.equal(42)
+          )
+      )
+
+      it('should call itself directly', () ->
+        spy = sinon.spy(n1, '_sendInvocation')
+        return n1.attr('n1', 'answer')
+          .then((result) ->
+            expect(result).to.equal(42)
+            expect(spy.called).to.be.false
           )
       )
     )
@@ -185,6 +226,16 @@ describe('RPC', () ->
         }
         n2.ping('n1', (err, callback) ->
           expect(err.message).to.equal('an error')
+          done()
+        )
+      )
+
+      it('should call itself directly', (done) ->
+        spy = sinon.spy(n1, '_sendInvocation')
+        return n1.ping('n1', (err, result) ->
+          if err then return done(err)
+          expect(result).to.true
+          expect(spy.called).to.be.false
           done()
         )
       )
@@ -223,6 +274,15 @@ describe('RPC', () ->
           )
           .then(() ->
             expect(catched).to.be.true
+          )
+      )
+
+      it('should call itself directly', () ->
+        spy = sinon.spy(n1, '_sendInvocation')
+        return n1.ping('n1')
+          .then((result) ->
+            expect(result).to.true
+            expect(spy.called).to.be.false
           )
       )
     )

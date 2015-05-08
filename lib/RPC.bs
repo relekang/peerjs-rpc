@@ -31,7 +31,17 @@ class RPC
     )
 
   invoke: (id, func, args, callback) ->
+    that = @
     if not Array.isArray(args) then throw new Error('args must be an array.')
+    if id == that.id
+      return new Promise((resolve, reject) ->
+        args.push((err, result) ->
+          if err then return reject(err)
+          resolve(result)
+        )
+        that.scope[func].apply(that.scope, args)
+      ).nodeify(callback)
+
     payload = {
       type: 'rpc-invoke'
       func: func
@@ -42,6 +52,9 @@ class RPC
     return @_sendInvocation(id, payload).nodeify(callback)
 
   attr: (id, attr, callback) ->
+    if id == @id
+      return Promise.resolve(@scope[attr]).nodeify(callback)
+
     payload = {
       type: 'rpc-attr'
       attr: attr
@@ -51,6 +64,9 @@ class RPC
     return @_sendInvocation(id, payload).nodeify(callback)
 
   ping: (id, callback) ->
+    if id == @id
+      return Promise.resolve(true).nodeify(callback)
+
     payload = {
       type: 'rpc-ping',
       orig: @id,
