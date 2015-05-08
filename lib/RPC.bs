@@ -85,6 +85,7 @@ class RPC
     if not 'type' in data then return
 
     @_log('Received data: ', data)
+    if data.error then data.error = new Error(data.error)
 
     if data.type.match(/^rpc-(:?ping|attr|invoke)$/)
       @_handlers()[data.type].bind(@)(connection, data)
@@ -193,7 +194,7 @@ class RPC
             orig: that.id
           }
           if error
-            payload.error = error
+            payload.error = error.message
           that._sendAnswer(data.orig, payload, connection)
         )
         that.scope[data.func].apply(that.scope, data.args)
@@ -201,7 +202,7 @@ class RPC
         payload = {
             type: 'rpc-return'
             data: null
-            error: new Error('unknown function')
+            error: 'unknown function'
             signature: data.signature
             orig: that.id
         }

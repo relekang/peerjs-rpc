@@ -247,7 +247,7 @@ describe('RPC', function() {
                             var payload = {
                                 'type': 'rpc-pong',
                                 'signature': data.signature,
-                                'error': new Error('an error')
+                                'error': 'an error'
                             };
                             n1._sendAnswer(data.orig, payload, connection);
                         }
@@ -294,7 +294,7 @@ describe('RPC', function() {
                             var payload = {
                                 'type': 'rpc-pong',
                                 'signature': data.signature,
-                                'error': new Error('an error')
+                                'error': 'an error'
                             };
                             n1._sendAnswer(data.orig, payload, connection);
                         }
