@@ -149,10 +149,10 @@ class RPC
               resolve(result)
 
           connection.send(payload)
+          that._log('Sending payload to "#{id}": ', payload)
         )
       )
       .then((value) ->
-          that._log('Sending payload to "#{id}": ', payload)
           return value
       )
 
