@@ -148,6 +148,8 @@ class RPC
             else
               resolve(result)
 
+          connection.on('error', (err) -> reject(err))
+
           connection.send(payload)
           that._log('Sending payload to "#{id}": ', payload)
         )
