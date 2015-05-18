@@ -79,7 +79,7 @@ class RPC
         throw error
       ).nodeify(callback)
 
-  _createSignature: (from, to, func) -> sha1('#{Date.now()}:#{from}:#{to}:#{func}')
+  _createSignature: (from, to, func) -> sha1('#{Date.now()}:#{from}:#{to}:#{func}#{Math.random()}')
 
   _onData: (connection, data) ->
     if not 'type' in data then return

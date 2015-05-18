@@ -337,6 +337,14 @@ describe('RPC', function() {
             expect(called).to.be.true;
         });
     });
+
+    describe('._createSignature', function() {
+        it('should create an uniqe signature', function() {
+            var s1 = n1._createSignature('n1', 'n2', 'invoke');
+            var s2 = n1._createSignature('n1', 'n2', 'invoke');
+            expect(s1).to.not.equal(s2);
+        });
+    });
 });
 
 

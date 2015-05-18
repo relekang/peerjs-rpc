@@ -306,4 +306,12 @@ describe('RPC', () ->
       expect(called).to.be.true
     )
   )
+
+  describe('._createSignature', () ->
+    it('should create an uniqe signature', () ->
+      s1 = n1._createSignature('n1', 'n2', 'invoke')
+      s2 = n1._createSignature('n1', 'n2', 'invoke')
+      expect(s1).to.not.equal(s2)
+    )
+  )
 )
